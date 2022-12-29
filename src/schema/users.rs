@@ -1,9 +1,9 @@
-use async_graphql::{Context, EmptyMutation, EmptySubscription, Object, Schema};
-use sqlx::{ types::time};
+use async_graphql::{Context, EmptySubscription, InputObject, Object, Schema, SimpleObject};
+use sqlx::types::time;
 use std::sync::Arc;
 
 use crate::ApiContext;
-pub type UserSchema = Schema<QueryRoot, EmptyMutation, EmptySubscription>;
+pub type UserSchema = Schema<QueryRoot, MutationRoot, EmptySubscription>;
 
 #[derive(Clone)]
 pub struct User {
@@ -57,5 +57,63 @@ impl QueryRoot {
             .await
             .unwrap_or(Vec::new());
         users
+    }
+}
+
+#[derive(InputObject)]
+pub struct SimpleUser {
+    username: String,
+    password: String,
+    photo: Option<String>,
+    email: String,
+    full_name: Option<String>,
+}
+
+#[Object]
+impl SimpleUser {
+    async fn username(&self) -> &str {
+        &self.username
+    }
+    async fn password(&self) -> &str {
+        &self.password
+    }
+    async fn photo(&self) -> &Option<String> {
+        &self.photo
+    }
+    async fn email(&self) -> &str {
+        &self.email
+    }
+    async fn full_name(&self) -> &Option<String> {
+        &self.full_name
+    }
+}
+
+#[derive(Clone, SimpleObject)]
+pub struct RegisterResponse {
+    id: u64,
+}
+
+pub struct MutationRoot;
+
+#[Object]
+impl MutationRoot {
+    async fn register(&self, ctx: &Context<'_>, user: SimpleUser) -> RegisterResponse {
+        let photo = user.photo.unwrap_or("".to_string());
+        let client = ctx.data_unchecked::<Arc<ApiContext>>();
+        let conn = &client.db;
+        let response = sqlx::query!(
+            r"INSERT INTO users (username, password, photo,email,full_name)
+        VALUES (?, ?, ?, ?, ?)",
+            user.username,
+            user.password,
+            photo,
+            user.email,
+            user.full_name.unwrap_or("".to_string())
+        )
+        .execute(conn)
+        .await
+        .unwrap();
+        let id = response.last_insert_id();
+        RegisterResponse { id: id }
     }
 }

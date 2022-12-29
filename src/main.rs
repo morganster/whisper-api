@@ -2,12 +2,12 @@ mod schema;
 
 use async_graphql::{
     http::{playground_source, GraphQLPlaygroundConfig},
-    EmptyMutation, EmptySubscription, Schema,
+    EmptySubscription, Schema,
 };
 use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
 use sqlx::MySqlPool;
 
-use crate::schema::users::{QueryRoot, UserSchema};
+use crate::schema::users::{MutationRoot, QueryRoot, UserSchema};
 use axum::{
     extract::Extension,
     response::{self, IntoResponse},
@@ -29,7 +29,7 @@ async fn main() {
         .await
         .expect("can't connect to db");
     let pool = Arc::new(ApiContext { db: client });
-    let schema = Schema::build(QueryRoot, EmptyMutation, EmptySubscription)
+    let schema = Schema::build(QueryRoot, MutationRoot, EmptySubscription)
         .data(pool)
         .finish();
     let app = Router::new()
@@ -44,10 +44,7 @@ async fn main() {
         .unwrap();
 }
 
-async fn graphql_handler(
-    schema: Extension<UserSchema>,
-    req: GraphQLRequest,
-) -> GraphQLResponse {
+async fn graphql_handler(schema: Extension<UserSchema>, req: GraphQLRequest) -> GraphQLResponse {
     schema.execute(req.into_inner()).await.into()
 }
 
