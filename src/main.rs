@@ -1,4 +1,5 @@
 mod schema;
+mod utils;
 
 use async_graphql::{
     http::{playground_source, GraphQLPlaygroundConfig},
