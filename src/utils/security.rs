@@ -1,10 +1,14 @@
-use crate::schema::users;
 use chrono::{Duration, Utc};
-use jsonwebtoken::{encode, EncodingKey, Header};
+use jsonwebtoken::{decode, encode, EncodingKey, Header, Validation, DecodingKey};
 use scrypt::{
     password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
     Scrypt,
 };
+
+use crate::schema::models::users::{self, Claims};
+
+#[derive(Clone)]
+pub struct Token(pub String);
 
 pub fn get_hashed_password(password: &str) -> String {
     let salt = SaltString::generate(&mut OsRng);
@@ -44,4 +48,14 @@ pub fn get_jwt_for_user(user: &users::User) -> String {
         Err(_) => panic!(),
     };
     token
+}
+
+pub fn get_claims_from_token(token: String) -> Claims {
+    let claims = decode::<Claims>(
+        &token,
+        &DecodingKey::from_secret(&get_secret()),
+        &Validation::default(),
+    ).unwrap();
+    
+    claims.claims
 }

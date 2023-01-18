@@ -6,11 +6,16 @@ use async_graphql::{
     EmptySubscription, Schema,
 };
 use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
+use schema::TwisterSchema;
 use sqlx::MySqlPool;
 
-use crate::schema::users::{MutationRoot, QueryRoot, UserSchema};
+use crate::{
+    schema::{mutations::MutationRoot, queries::QueryRoot},
+    utils::security::Token,
+};
 use axum::{
     extract::Extension,
+    http::header::HeaderMap,
     response::{self, IntoResponse},
     routing::get,
     Router,
@@ -33,6 +38,7 @@ async fn main() {
     let schema = Schema::build(QueryRoot, MutationRoot, EmptySubscription)
         .data(pool)
         .finish();
+
     let app = Router::new()
         .route("/", get(graphql_playground).post(graphql_handler))
         .layer(Extension(schema));
@@ -45,8 +51,22 @@ async fn main() {
         .unwrap();
 }
 
-async fn graphql_handler(schema: Extension<UserSchema>, req: GraphQLRequest) -> GraphQLResponse {
-    schema.execute(req.into_inner()).await.into()
+fn get_token_from_headers(headers: &HeaderMap) -> Option<Token> {
+    headers
+        .get("Token")
+        .and_then(|value| value.to_str().map(|s| Token(s.to_string())).ok())
+}
+
+async fn graphql_handler(
+    schema: Extension<TwisterSchema>,
+    headers: HeaderMap,
+    req: GraphQLRequest,
+) -> GraphQLResponse {
+    let mut req = req.into_inner();
+    if let Some(token) = get_token_from_headers(&headers) {
+        req = req.data(token);
+    }
+    schema.execute(req).await.into()
 }
 
 async fn graphql_playground() -> impl IntoResponse {
