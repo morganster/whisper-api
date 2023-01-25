@@ -1,18 +1,14 @@
-use crate::schema::models::users::{User, SimpleUser, RegisterResponse, LoginUser, LoginResponse};
-use crate::utils::security::{get_hashed_password, get_jwt_for_user, verify_password, Token};
+use crate::schema::models::users::{LoginResponse, LoginUser, RegisterResponse, SimpleUser, User};
+use crate::utils::security::{get_hashed_password, get_jwt_for_user, verify_password};
 use crate::ApiContext;
-use async_graphql::{
-    Context, Object,
-};
+use async_graphql::{Context, Object};
 use std::sync::Arc;
 
-use super::MutationRoot;
-
-
-
+#[derive(Default)]
+pub struct UserMutation;
 
 #[Object]
-impl MutationRoot {
+impl UserMutation {
     async fn register(&self, ctx: &Context<'_>, user: SimpleUser) -> RegisterResponse {
         let photo = user.photo.unwrap_or("".to_string());
         let password = get_hashed_password(&user.password);
@@ -35,8 +31,6 @@ impl MutationRoot {
     }
 
     async fn login(&self, ctx: &Context<'_>, user: LoginUser) -> LoginResponse {
-        let token = ctx.data_unchecked::<Token>();
-
         let client = ctx.data_unchecked::<Arc<ApiContext>>();
         let conn = &client.db;
         let mut token = "".to_string();
@@ -49,7 +43,7 @@ impl MutationRoot {
         )
         .fetch_one(conn)
         .await
-        .unwrap();// TODO: Error handling
+        .unwrap(); // TODO: Error handling
 
         if verify_password(&user.password, &hashed_password) {
             token = get_jwt_for_user(&q_user);

@@ -113,8 +113,8 @@ impl LoginResponse {
     }
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug,Default)]
 pub struct Claims {
-    pub sub: String,
+    pub sub: u32,
     pub exp: usize,
 }

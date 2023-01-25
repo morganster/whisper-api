@@ -1,11 +1,10 @@
+use crate::schema::models::users::{self};
 use chrono::{Duration, Utc};
-use jsonwebtoken::{decode, encode, EncodingKey, Header, Validation, DecodingKey};
+use jsonwebtoken::{encode, EncodingKey, Header};
 use scrypt::{
     password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
     Scrypt,
 };
-
-use crate::schema::models::users::{self, Claims};
 
 #[derive(Clone)]
 pub struct Token(pub String);
@@ -26,17 +25,17 @@ pub fn verify_password(password: &str, password_hash: &str) -> bool {
         .is_ok()
 }
 
-fn get_secret() -> Vec<u8> {
+pub fn get_secret() -> Vec<u8> {
     std::env::var("JWT_SECRET").unwrap().into_bytes()
 }
 
 pub fn get_jwt_for_user(user: &users::User) -> String {
     let expiration_time = Utc::now()
-        .checked_add_signed(Duration::seconds(60))
+        .checked_add_signed(Duration::days(60))
         .expect("invalid timestamp")
         .timestamp();
     let user_claims = users::Claims {
-        sub: user.username.clone(),
+        sub: user.id.clone(),
         exp: expiration_time as usize,
     };
     let token = match encode(
@@ -48,14 +47,4 @@ pub fn get_jwt_for_user(user: &users::User) -> String {
         Err(_) => panic!(),
     };
     token
-}
-
-pub fn get_claims_from_token(token: String) -> Claims {
-    let claims = decode::<Claims>(
-        &token,
-        &DecodingKey::from_secret(&get_secret()),
-        &Validation::default(),
-    ).unwrap();
-    
-    claims.claims
 }

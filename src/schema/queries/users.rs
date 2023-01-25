@@ -3,12 +3,13 @@ use crate::{ApiContext, schema::models::users::User};
 use async_graphql::{
   Context, Object, Result,
 };
-use super::QueryRoot;
 
+#[derive(Default)]
+pub struct UserQuery;
 
 
 #[Object]
-impl QueryRoot {
+impl UserQuery {
     async fn users(&self, ctx: &Context<'_>) -> Result<Vec<User>> {
         let client = ctx.data_unchecked::<Arc<ApiContext>>();
         let conn = &client.db;
