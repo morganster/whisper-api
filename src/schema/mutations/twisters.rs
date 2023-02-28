@@ -1,15 +1,13 @@
 use std::sync::Arc;
 
 use async_graphql::{Context, Object};
-use jsonwebtoken::{decode, DecodingKey, Validation};
 
 use crate::{
     schema::models::{
         twisters::{CreateTwist, CreatedResponse},
-        users::Claims,
     },
-    utils::security::{get_secret, Token},
-    ApiContext, AuthError,
+    utils::security::{ Token, get_token_data},
+    ApiContext, ApiError,
 };
 
 #[derive(Default)]
@@ -21,29 +19,25 @@ impl TwisterMutation {
         &self,
         ctx: &'a Context<'_>,
         twist: CreateTwist,
-    ) -> Result<CreatedResponse, AuthError> {
+    ) -> Result<CreatedResponse, ApiError> {
         let token = ctx.data_opt::<Token>().unwrap();
         //TODO: move to a public function
-        let token_data = decode::<Claims>(
-            &token.0.to_string(),
-            &DecodingKey::from_secret(&get_secret()),
-            &Validation::default(),
-        )
-        .map_err(|_| AuthError::InvalidToken)?;
+        let token_data = get_token_data(token)?;
         let claims = token_data.claims;
         let client = ctx.data_unchecked::<Arc<ApiContext>>();
         let conn = &client.db;
 
-        let response = sqlx::query!(
+        let inserted_twist = sqlx::query!(
             r"INSERT INTO twisters (content, user_id)
              VALUES (?, ?)",
             twist.content,
             claims.sub,
         )
         .execute(conn)
-        .await
-        .unwrap();
-        let id = response.last_insert_id();
-        Ok::<CreatedResponse, AuthError>(CreatedResponse { id: id })
+        .await;
+        match inserted_twist {
+            Ok(twist) => Ok(CreatedResponse { id: twist.last_insert_id() }),
+            Err(e) => Err(ApiError::ExpiredToken),      
+        }
     }
 }

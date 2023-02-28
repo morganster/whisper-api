@@ -1,6 +1,6 @@
-use crate::schema::models::users::{self};
+use crate::{schema::models::users::{self, Claims}, ApiError};
 use chrono::{Duration, Utc};
-use jsonwebtoken::{encode, EncodingKey, Header};
+use jsonwebtoken::{decode, encode,DecodingKey, EncodingKey, Header, TokenData, Validation};
 use scrypt::{
     password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
     Scrypt,
@@ -27,6 +27,18 @@ pub fn verify_password(password: &str, password_hash: &str) -> bool {
 
 pub fn get_secret() -> Vec<u8> {
     std::env::var("JWT_SECRET").unwrap().into_bytes()
+}
+
+pub fn get_token_data(token: &Token) -> Result<TokenData<Claims>, ApiError> {
+    let token_data = decode::<Claims>(
+        &token.0.to_string(),
+        &DecodingKey::from_secret(&get_secret()),
+        &Validation::default(),
+    );
+    match token_data {
+        Ok(data) => Ok(data),
+        Err(_e) => Err(ApiError::InvalidToken)
+    }
 }
 
 pub fn get_jwt_for_user(user: &users::User) -> String {
