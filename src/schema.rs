@@ -7,4 +7,4 @@ use mutations::MutationRoot;
 use async_graphql::{
    EmptySubscription, Schema,
 };
-pub type TwisterSchema = Schema<QueryRoot, MutationRoot, EmptySubscription>;
+pub type WhisperSchema = Schema<QueryRoot, MutationRoot, EmptySubscription>;

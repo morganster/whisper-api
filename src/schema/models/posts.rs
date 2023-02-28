@@ -3,7 +3,7 @@ use sqlx::types::time;
 
 
 
-pub struct Twist {
+pub struct Post {
   pub id: u64,
   pub content: Option<String>,
   pub created_at: time::PrimitiveDateTime,
@@ -13,7 +13,7 @@ pub struct Twist {
 }
 
 #[Object]
-impl Twist {
+impl Post {
   async fn id(&self) -> &u64 {
       &self.id
   }
@@ -41,6 +41,6 @@ pub struct CreatedResponse {
 
 
 #[derive(InputObject)]
-pub struct CreateTwist {
+pub struct CreatePost {
     pub content: String,
 }

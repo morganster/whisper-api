@@ -33,7 +33,7 @@ impl UserMutation {
             Ok(user) => Ok(RegisterResponse {
                 id: user.last_insert_id(),
             }),
-            Err(e) => Err(ApiError::ExpiredToken),
+            Err(_e) => Err(ApiError::ExpiredToken),
         }
     }
 
@@ -58,16 +58,12 @@ impl UserMutation {
                 } else {
                     error = "user not found or yes".to_string();
                 }
-                Ok(
-                    LoginResponse {
-                        token: Some(token),
-                        error: Some(error),
-                    }
-                )
-                 
-            },
-            Err(e) => Err(ApiError::WrongCredentials),
+                Ok(LoginResponse {
+                    token: Some(token),
+                    error: Some(error),
+                })
+            }
+            Err(_e) => Err(ApiError::WrongCredentials),
         }
-
     }
 }

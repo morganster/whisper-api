@@ -1,10 +1,10 @@
 use async_graphql::MergedObject;
 
-use self::{users::UserQuery, twisters::TwisterQuery};
+use self::{users::UserQuery, posts::PostQuery};
 
 pub mod users;
-pub mod twisters;
+pub mod posts;
 
 
 #[derive(MergedObject, Default)]
-pub struct QueryRoot( UserQuery,TwisterQuery);
+pub struct QueryRoot( UserQuery,PostQuery);

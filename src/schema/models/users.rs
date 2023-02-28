@@ -1,10 +1,6 @@
-
-use sqlx::types::time;
-use async_graphql::{
- Object, SimpleObject, InputObject,
-};
+use async_graphql::{InputObject, Object, SimpleObject};
 use serde::{Deserialize, Serialize};
-
+use sqlx::types::time;
 
 #[derive(Clone)]
 pub struct User {
@@ -45,8 +41,6 @@ impl User {
         self.updated_at.to_owned().to_string()
     }
 }
-
-
 
 #[derive(InputObject)]
 pub struct SimpleUser {
@@ -113,7 +107,7 @@ impl LoginResponse {
     }
 }
 
-#[derive(Deserialize, Serialize, Debug,Default)]
+#[derive(Deserialize, Serialize, Debug, Default)]
 pub struct Claims {
     pub sub: u32,
     pub exp: usize,

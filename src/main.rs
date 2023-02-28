@@ -6,7 +6,7 @@ use async_graphql::{
     EmptySubscription, Schema,
 };
 use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
-use schema::TwisterSchema;
+use schema::WhisperSchema;
 use sqlx::MySqlPool;
 use thiserror::Error;
 use utils::security::Token;
@@ -56,7 +56,7 @@ async fn main() {
 }
 
 async fn graphql_handler(
-    schema: Extension<TwisterSchema>,
+    schema: Extension<WhisperSchema>,
     token: Token,
     req: GraphQLRequest,
 ) -> GraphQLResponse {

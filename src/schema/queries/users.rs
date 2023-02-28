@@ -1,12 +1,9 @@
+use crate::{schema::models::users::User, ApiContext};
+use async_graphql::{Context, Object, Result};
 use std::sync::Arc;
-use crate::{ApiContext, schema::models::users::User};
-use async_graphql::{
-  Context, Object, Result,
-};
 
 #[derive(Default)]
 pub struct UserQuery;
-
 
 #[Object]
 impl UserQuery {

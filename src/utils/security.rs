@@ -1,6 +1,9 @@
-use crate::{schema::models::users::{self, Claims}, ApiError};
+use crate::{
+    schema::models::users::{self, Claims},
+    ApiError,
+};
 use chrono::{Duration, Utc};
-use jsonwebtoken::{decode, encode,DecodingKey, EncodingKey, Header, TokenData, Validation};
+use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, TokenData, Validation};
 use scrypt::{
     password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
     Scrypt,
@@ -37,7 +40,7 @@ pub fn get_token_data(token: &Token) -> Result<TokenData<Claims>, ApiError> {
     );
     match token_data {
         Ok(data) => Ok(data),
-        Err(_e) => Err(ApiError::InvalidToken)
+        Err(_e) => Err(ApiError::InvalidToken),
     }
 }
 

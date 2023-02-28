@@ -1,7 +1,7 @@
 use async_graphql::MergedObject;
-use self::{users::UserMutation, twisters::TwisterMutation};
+use self::{users::UserMutation, posts::PostMutation};
 
-pub mod twisters;
+pub mod posts;
 pub mod users;
 #[derive(MergedObject, Default)]
-pub struct MutationRoot(UserMutation, TwisterMutation);
+pub struct MutationRoot(UserMutation, PostMutation);

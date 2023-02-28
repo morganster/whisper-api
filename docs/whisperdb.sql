@@ -5,22 +5,22 @@ SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
 
 -- -----------------------------------------------------
--- Schema twisterdb
+-- Schema whisperdb
 -- -----------------------------------------------------
-DROP SCHEMA IF EXISTS `twisterdb` ;
+DROP SCHEMA IF EXISTS `whisperdb` ;
 
 -- -----------------------------------------------------
--- Schema twisterdb
+-- Schema whisperdb
 -- -----------------------------------------------------
-CREATE SCHEMA IF NOT EXISTS `twisterdb` ;
-USE `twisterdb` ;
+CREATE SCHEMA IF NOT EXISTS `whisperdb` ;
+USE `whisperdb` ;
 
 -- -----------------------------------------------------
--- Table `twisterdb`.`users`
+-- Table `whisperdb`.`users`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `twisterdb`.`users` ;
+DROP TABLE IF EXISTS `whisperdb`.`users` ;
 
-CREATE TABLE IF NOT EXISTS `twisterdb`.`users` (
+CREATE TABLE IF NOT EXISTS `whisperdb`.`users` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `username` VARCHAR(45) NOT NULL,
   `password` VARCHAR(160) NOT NULL,
@@ -34,11 +34,11 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `twisterdb`.`twisters`
+-- Table `whisperdb`.`posts`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `twisterdb`.`twisters` ;
+DROP TABLE IF EXISTS `whisperdb`.`posts` ;
 
-CREATE TABLE IF NOT EXISTS `twisterdb`.`twisters` (
+CREATE TABLE IF NOT EXISTS `whisperdb`.`posts` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `content` VARCHAR(280) NULL,
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -46,22 +46,22 @@ CREATE TABLE IF NOT EXISTS `twisterdb`.`twisters` (
   `user_id` INT UNSIGNED NULL,
   `reply_to` BIGINT UNSIGNED NULL,
   PRIMARY KEY (`id`),
-  CONSTRAINT `fk_twist_user`
+  CONSTRAINT `fk_post_user`
     FOREIGN KEY (`user_id`)
-    REFERENCES `twisterdb`.`users` (`id`)
+    REFERENCES `whisperdb`.`users` (`id`)
     ON DELETE SET NULL
     ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
-CREATE INDEX `fk_twist_user_idx` ON `twisterdb`.`twisters` (`user_id` ASC) VISIBLE;
+CREATE INDEX `fk_post_user_idx` ON `whisperdb`.`posts` (`user_id` ASC) VISIBLE;
 
 
 -- -----------------------------------------------------
--- Table `twisterdb`.`reaction_type`
+-- Table `whisperdb`.`reaction_type`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `twisterdb`.`reaction_type` ;
+DROP TABLE IF EXISTS `whisperdb`.`reaction_type` ;
 
-CREATE TABLE IF NOT EXISTS `twisterdb`.`reaction_type` (
+CREATE TABLE IF NOT EXISTS `whisperdb`.`reaction_type` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(45) NOT NULL,
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -71,13 +71,13 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `twisterdb`.`reactions`
+-- Table `whisperdb`.`reactions`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `twisterdb`.`reactions` ;
+DROP TABLE IF EXISTS `whisperdb`.`reactions` ;
 
-CREATE TABLE IF NOT EXISTS `twisterdb`.`reactions` (
+CREATE TABLE IF NOT EXISTS `whisperdb`.`reactions` (
   `reaction_type_id` INT UNSIGNED NOT NULL,
-  `twist_id` BIGINT UNSIGNED NOT NULL,
+  `post_id` BIGINT UNSIGNED NOT NULL,
   `user_id` INT UNSIGNED NOT NULL,
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` DATETIME NOT NULL DEFAULT NOW(),
@@ -85,34 +85,34 @@ CREATE TABLE IF NOT EXISTS `twisterdb`.`reactions` (
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_reaction_reaction_type1`
     FOREIGN KEY (`reaction_type_id`)
-    REFERENCES `twisterdb`.`reaction_type` (`id`)
+    REFERENCES `whisperdb`.`reaction_type` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  CONSTRAINT `fk_reaction_twist1`
-    FOREIGN KEY (`twist_id`)
-    REFERENCES `twisterdb`.`twisters` (`id`)
+  CONSTRAINT `fk_reaction_post1`
+    FOREIGN KEY (`post_id`)
+    REFERENCES `whisperdb`.`posts` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_reaction_user1`
     FOREIGN KEY (`user_id`)
-    REFERENCES `twisterdb`.`users` (`id`)
+    REFERENCES `whisperdb`.`users` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
-CREATE INDEX `fk_reaction_reaction_type1_idx` ON `twisterdb`.`reactions` (`reaction_type_id` ASC) VISIBLE;
+CREATE INDEX `fk_reaction_reaction_type1_idx` ON `whisperdb`.`reactions` (`reaction_type_id` ASC) VISIBLE;
 
-CREATE INDEX `fk_reaction_twist1_idx` ON `twisterdb`.`reactions` (`twist_id` ASC) VISIBLE;
+CREATE INDEX `fk_reaction_post1_idx` ON `whisperdb`.`reactions` (`post_id` ASC) VISIBLE;
 
-CREATE INDEX `fk_reaction_user1_idx` ON `twisterdb`.`reactions` (`user_id` ASC) VISIBLE;
+CREATE INDEX `fk_reaction_user1_idx` ON `whisperdb`.`reactions` (`user_id` ASC) VISIBLE;
 
 
 -- -----------------------------------------------------
--- Table `twisterdb`.`tags`
+-- Table `whisperdb`.`tags`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `twisterdb`.`tags` ;
+DROP TABLE IF EXISTS `whisperdb`.`tags` ;
 
-CREATE TABLE IF NOT EXISTS `twisterdb`.`tags` (
+CREATE TABLE IF NOT EXISTS `whisperdb`.`tags` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(45) NULL,
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -122,58 +122,58 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `twisterdb`.`twisters_has_tags`
+-- Table `whisperdb`.`posts_has_tags`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `twisterdb`.`twisters_has_tags` ;
+DROP TABLE IF EXISTS `whisperdb`.`posts_has_tags` ;
 
-CREATE TABLE IF NOT EXISTS `twisterdb`.`twisters_has_tags` (
-  `twisters_id` BIGINT UNSIGNED NOT NULL,
+CREATE TABLE IF NOT EXISTS `whisperdb`.`posts_has_tags` (
+  `posts_id` BIGINT UNSIGNED NOT NULL,
   `tags_id` BIGINT UNSIGNED NOT NULL,
-  PRIMARY KEY (`twisters_id`, `tags_id`),
-  CONSTRAINT `fk_twisters_has_tags_twisters1`
-    FOREIGN KEY (`twisters_id`)
-    REFERENCES `twisterdb`.`twisters` (`id`)
+  PRIMARY KEY (`posts_id`, `tags_id`),
+  CONSTRAINT `fk_posts_has_tags_posts1`
+    FOREIGN KEY (`posts_id`)
+    REFERENCES `whisperdb`.`posts` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  CONSTRAINT `fk_twisters_has_tags_tags1`
+  CONSTRAINT `fk_posts_has_tags_tags1`
     FOREIGN KEY (`tags_id`)
-    REFERENCES `twisterdb`.`tags` (`id`)
+    REFERENCES `whisperdb`.`tags` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
-CREATE INDEX `fk_twisters_has_tags_tags1_idx` ON `twisterdb`.`twisters_has_tags` (`tags_id` ASC) VISIBLE;
+CREATE INDEX `fk_posts_has_tags_tags1_idx` ON `whisperdb`.`posts_has_tags` (`tags_id` ASC) VISIBLE;
 
-CREATE INDEX `fk_twisters_has_tags_twisters1_idx` ON `twisterdb`.`twisters_has_tags` (`twisters_id` ASC) VISIBLE;
+CREATE INDEX `fk_posts_has_tags_posts1_idx` ON `whisperdb`.`posts_has_tags` (`posts_id` ASC) VISIBLE;
 
 
 -- -----------------------------------------------------
--- Table `twisterdb`.`retwisters`
+-- Table `whisperdb`.`reposts`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `twisterdb`.`retwisters` ;
+DROP TABLE IF EXISTS `whisperdb`.`reposts` ;
 
-CREATE TABLE IF NOT EXISTS `twisterdb`.`retwisters` (
+CREATE TABLE IF NOT EXISTS `whisperdb`.`reposts` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `users_id` INT UNSIGNED NOT NULL,
-  `twisters_id` BIGINT UNSIGNED NOT NULL,
+  `posts_id` BIGINT UNSIGNED NOT NULL,
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` DATETIME NOT NULL DEFAULT NOW(),
   PRIMARY KEY (`id`),
-  CONSTRAINT `fk_retwisters_users1`
+  CONSTRAINT `fk_reposts_users1`
     FOREIGN KEY (`users_id`)
-    REFERENCES `twisterdb`.`users` (`id`)
+    REFERENCES `whisperdb`.`users` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  CONSTRAINT `fk_retwisters_twisters1`
-    FOREIGN KEY (`twisters_id`)
-    REFERENCES `twisterdb`.`twisters` (`id`)
+  CONSTRAINT `fk_reposts_posts1`
+    FOREIGN KEY (`posts_id`)
+    REFERENCES `whisperdb`.`posts` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
-CREATE INDEX `fk_retwisters_users1_idx` ON `twisterdb`.`retwisters` (`users_id` ASC) VISIBLE;
+CREATE INDEX `fk_reposts_users1_idx` ON `whisperdb`.`reposts` (`users_id` ASC) VISIBLE;
 
-CREATE INDEX `fk_retwisters_twisters1_idx` ON `twisterdb`.`retwisters` (`twisters_id` ASC) VISIBLE;
+CREATE INDEX `fk_reposts_posts1_idx` ON `whisperdb`.`reposts` (`posts_id` ASC) VISIBLE;
 
 
 SET SQL_MODE=@OLD_SQL_MODE;
